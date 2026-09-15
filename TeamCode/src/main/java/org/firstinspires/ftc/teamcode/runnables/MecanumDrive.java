@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.runnables;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.mechanisms.Gyro;
+import org.firstinspires.ftc.teamcode.mechanisms.LimelightSubsystem;
 import org.firstinspires.ftc.teamcode.mechanisms.RobotHardware;
 
 /**
@@ -15,6 +17,8 @@ public class MecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         RobotHardware robot = new RobotHardware(hardwareMap);
+        Gyro imu = new Gyro();
+        LimelightSubsystem limelight = new LimelightSubsystem(hardwareMap);
 
         waitForStart();
 
