@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
  * Hardware map for a standard mecanum drivetrain.
- * Motor naming convention: front/back + left/right (e.g. "frontLeft").
+ * Naming convention: front/back + Left/Right (e.g. "frontLeft").
  * Adjust config names to match your Driver Station robot configuration.
  * @author: AdithyqGanesan
  */
