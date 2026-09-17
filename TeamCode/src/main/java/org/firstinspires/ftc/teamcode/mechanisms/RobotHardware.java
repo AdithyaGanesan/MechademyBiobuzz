@@ -16,6 +16,9 @@ public class RobotHardware {
     public DcMotorEx frontLeft, frontRight, backLeft, backRight;
 
     private final HardwareMap hwMap;
+    public Gyro imu;
+    public LimelightSubsystem limelight;
+    public ShooterSubsystem shooter;
 
     public RobotHardware(HardwareMap hardwareMap) {
         this.hwMap = hardwareMap;
@@ -23,6 +26,11 @@ public class RobotHardware {
     }
 
     private void init() {
+        // --- Mechanisms ---
+        imu = new Gyro();
+        limelight = new LimelightSubsystem(hwMap);
+        shooter = new ShooterSubsystem(hwMap);
+
         // --- Drivetrain ---
         frontLeft  = hwMap.get(DcMotorEx.class, "frontLeft");
         frontRight = hwMap.get(DcMotorEx.class, "frontRight");

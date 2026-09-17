@@ -17,10 +17,10 @@ public class MecanumDrive extends LinearOpMode {
     @Override
     public void runOpMode() {
         RobotHardware robot = new RobotHardware(hardwareMap);
-        Gyro imu = new Gyro();
-        LimelightSubsystem limelight = new LimelightSubsystem(hardwareMap);
 
         waitForStart();
+
+        robot.limelight.start();
 
         while (opModeIsActive()) {
             double axial   = -gamepad1.left_stick_y; // Y is inverted on gamepad
@@ -34,5 +34,7 @@ public class MecanumDrive extends LinearOpMode {
             telemetry.addData("Yaw", yaw);
             telemetry.update();
         }
+
+        robot.limelight.stop();
     }
 }
