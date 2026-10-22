@@ -27,7 +27,7 @@ public class RobotHardware {
 
     private void init() {
         // --- Mechanisms ---
-        imu = new Gyro();
+        imu = new Gyro(hwMap);
         limelight = new LimelightSubsystem(hwMap);
         shooter = new ShooterSubsystem(hwMap);
 

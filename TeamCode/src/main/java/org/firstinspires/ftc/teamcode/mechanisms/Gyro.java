@@ -11,12 +11,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  * @author: AdithyqGanesan
  **/
 public class Gyro {
-    private IMU imu;
+    private final IMU imu;
 
-    public void init(HardwareMap hardwareMap){
+    public Gyro(HardwareMap hardwareMap){
         imu = hardwareMap.get(IMU.class,"imu");
 
-        //TODO: Calibrate IMU orientation
+        //TODO: Calibrate IMU orientation. CAD has the hubs on the side walls tilted ~22°;
+        // still need which wall the Control Hub is on and which way its USB ports face.
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
 
         imu.initialize(new IMU.Parameters(RevOrientation));
