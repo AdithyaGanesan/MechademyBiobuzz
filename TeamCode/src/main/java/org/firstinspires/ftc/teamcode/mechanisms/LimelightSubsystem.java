@@ -11,8 +11,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
  * Config name in Driver Station: "limelight"
  *
  * NOTE: written without hardware in hand
+ * @deprecated The robot no longer uses a Limelight; two cameras will replace it. Kept for reference only.
  * @author: AdithyaGanesan
  */
+@Deprecated
 public class LimelightSubsystem {
 
     private final Limelight3A limelight;

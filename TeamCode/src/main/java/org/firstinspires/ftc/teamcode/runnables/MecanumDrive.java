@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Gyro;
-import org.firstinspires.ftc.teamcode.mechanisms.LimelightSubsystem;
 import org.firstinspires.ftc.teamcode.mechanisms.RobotHardware;
 
 /**
@@ -20,8 +19,6 @@ public class MecanumDrive extends LinearOpMode {
 
         waitForStart();
 
-        robot.limelight.start();
-
         while (opModeIsActive()) {
             double axial   = -gamepad1.left_stick_y; // Y is inverted on gamepad
             double lateral =  gamepad1.left_stick_x;
@@ -34,7 +31,5 @@ public class MecanumDrive extends LinearOpMode {
             telemetry.addData("Yaw", yaw);
             telemetry.update();
         }
-
-        robot.limelight.stop();
     }
 }

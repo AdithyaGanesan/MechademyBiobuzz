@@ -17,7 +17,6 @@ public class RobotHardware {
 
     private final HardwareMap hwMap;
     public Gyro imu;
-    public LimelightSubsystem limelight;
     public ShooterSubsystem shooter;
 
     public RobotHardware(HardwareMap hardwareMap) {
@@ -28,7 +27,6 @@ public class RobotHardware {
     private void init() {
         // --- Mechanisms ---
         imu = new Gyro(hwMap);
-        limelight = new LimelightSubsystem(hwMap);
         shooter = new ShooterSubsystem(hwMap);
 
         // --- Drivetrain ---
