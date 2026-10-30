@@ -47,8 +47,7 @@ public class ShooterSubsystem implements Subsystem {
     private double target_rpm = 0;
     private double hoodAngleDeg = 0;
 
-    //TODO: Create LookupTable class for shooting RPM based on distance
-    //LookupTable pollenRPM = new LookupTable();
+    // RPM and hood angle by distance come from ShotSolver's LookupTables.
 
     public ShooterSubsystem(HardwareMap hwMap) {
         flywheel = hwMap.get(DcMotorEx.class, "shooter");
