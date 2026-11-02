@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Gyro;
+import org.firstinspires.ftc.teamcode.mechanisms.HiveState;
 import org.firstinspires.ftc.teamcode.mechanisms.RobotHardware;
 
 /**
@@ -15,7 +16,8 @@ public class MecanumDrive extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        RobotHardware robot = new RobotHardware(hardwareMap);
+        // Drive-only test; the alliance doesn't matter here.
+        RobotHardware robot = new RobotHardware(hardwareMap, HiveState.Alliance.BLUE);
 
         waitForStart();
 

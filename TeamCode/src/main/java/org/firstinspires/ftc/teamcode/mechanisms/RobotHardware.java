@@ -4,6 +4,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Hardware map for a standard mecanum drivetrain.
  * Naming convention: front/back + Left/Right (e.g. "frontLeft").
@@ -17,17 +22,29 @@ public class RobotHardware {
 
     private final HardwareMap hwMap;
     public Gyro imu;
+    public Odometry odometry;
     public ShooterSubsystem shooter;
+    public Turret turret;
+    public HiveState hiveState;
+    public FlowerRamp flowerRamp;
 
-    public RobotHardware(HardwareMap hardwareMap) {
+    // Every subsystem, in the order update() runs them. Odometry first so later steps see a fresh pose.
+    private List<Subsystem> subsystems;
+
+    public RobotHardware(HardwareMap hardwareMap, HiveState.Alliance alliance) {
         this.hwMap = hardwareMap;
-        init();
+        init(alliance);
     }
 
-    private void init() {
+    private void init(HiveState.Alliance alliance) {
         // --- Mechanisms ---
         imu = new Gyro(hwMap);
+        odometry = new Odometry(hwMap);
         shooter = new ShooterSubsystem(hwMap);
+        turret = new Turret(hwMap);
+        hiveState = new HiveState(alliance);
+        flowerRamp = new FlowerRamp(hwMap);
+        subsystems = Arrays.asList(odometry, imu, hiveState, turret, shooter, flowerRamp);
 
         // --- Drivetrain ---
         frontLeft  = hwMap.get(DcMotorEx.class, "frontLeft");
@@ -47,6 +64,40 @@ public class RobotHardware {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
+    }
+
+    /** Call once per loop: reads the Pinpoint and runs each subsystem's control. */
+    public void update() {
+        for (Subsystem s : subsystems) s.update();
+    }
+
+    /** Call when the OpMode ends. */
+    public void stop() {
+        for (Subsystem s : subsystems) s.stop();
+        driveMecanum(0, 0, 0);
+    }
+
+    /** Adds every subsystem's lines. The OpMode still calls telemetry.update() once afterwards. */
+    public void addTelemetry(Telemetry telemetry) {
+        for (Subsystem s : subsystems) s.addTelemetry(telemetry);
+    }
+
+    /**
+     * Points the turret at the up cell of our hive and sets flywheel speed and hood angle for the distance.
+     * @return the shot ShotSolver computed, for telemetry or to check before feeding
+     */
+    public ShotSolver.Shot aimAtHive() {
+        ShotSolver.Shot shot = ShotSolver.solve(odometry.getX(), odometry.getY(), odometry.getHeadingDeg(),
+                hiveState.getTargetPosition());
+        turret.setTargetAngle(shot.turretAngleDeg);
+        shooter.setTargetVelocity(shot.rpm);
+        shooter.setHoodAngle(shot.hoodDeg);
+        return shot;
+    }
+
+    /** @return true when the turret is on target and the flywheel is at speed, i.e. safe to feed a ball */
+    public boolean readyToShoot() {
+        return turret.atTarget() && shooter.atTargetVelocity() && shooter.getTargetVelocity() > 0;
     }
 
     /**
