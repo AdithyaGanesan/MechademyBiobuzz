@@ -1,3 +1,220 @@
+# Mechademy Biobuzz robot code
+
+Robot code for our 2026–2027 *FIRST* Tech Challenge BIOBUZZ robot: mecanum drive, Pinpoint odometry,
+a turret that aims at the hive from odometry, a flywheel shooter with an adjustable hood, intake and transfer,
+flower ramps, and two cameras (hive tilt and pollen). Our code lives in
+[`TeamCode/src/main/java/org/firstinspires/ftc/teamcode`](TeamCode/src/main/java/org/firstinspires/ftc/teamcode);
+everything below the line further down is the stock FTC SDK README.
+
+## Class diagram
+
+```mermaid
+classDiagram
+    direction TB
+
+    class LinearOpMode {
+        <<FTC SDK>>
+        +runOpMode()
+    }
+    class BiobuzzTeleOp {
+        <<abstract>>
+        #alliance() Alliance
+        +runOpMode()
+    }
+    class TeleOpRed
+    class TeleOpBlue
+    class MecanumDrive {
+        +runOpMode()
+    }
+
+    class RobotHardware {
+        +frontLeft, frontRight, backLeft, backRight : DcMotorEx
+        +RobotHardware(HardwareMap, Alliance)
+        +update()
+        +stop()
+        +addTelemetry(Telemetry)
+        +aimAtHive() Shot
+        +readyToShoot() boolean
+        +driveMecanum(axial, lateral, yaw)
+    }
+
+    class Subsystem {
+        <<interface>>
+        +update()
+        +stop()
+        +addTelemetry(Telemetry)
+    }
+
+    class Odometry {
+        +setPose(x, y, headingDeg)
+        +getX() double
+        +getY() double
+        +getHeadingDeg() double
+    }
+    class Gyro {
+        +getHeading() double
+    }
+    class HiveState {
+        +getUpCell() Cell
+        +getSource() Source
+        +flip()
+        +setFromCamera(Cell)
+        +getTargetPosition() double[]
+    }
+    class HiveCamera {
+        -clusterHeightIn(yOut, zUp)$ double
+    }
+    class PollenCamera {
+        +getPollen() Spot
+        +setEnabled(boolean)
+        -toFloor(cxNorm, cyNorm)$ Spot
+    }
+    class Turret {
+        +zeroHere()
+        +getAngle() double
+        +setTargetAngle(degrees)
+        +getTargetAngle() double
+        +atTarget() boolean
+    }
+    class ShooterSubsystem {
+        +setTargetVelocity(rpm)
+        +getTargetVelocity() double
+        +getVelocity() double
+        +atTargetVelocity() boolean
+        +setHoodAngle(degrees)
+        +getHoodAngle() double
+    }
+    class Intake {
+        +in()
+        +out()
+        +off()
+        +getState() State
+    }
+    class Transfer {
+        +feed()
+        +reverse()
+        +off()
+        +getState() State
+    }
+    class FlowerRamp {
+        +up()
+        +down()
+        +toggle()
+        +isUp() boolean
+    }
+
+    class ShotSolver {
+        <<final>>
+        +solve(robotX, robotY, robotHeadingDeg, target)$ Shot
+    }
+    class Shot {
+        +turretAngleDeg : double
+        +distanceIn : double
+        +rpm : double
+        +hoodDeg : double
+    }
+    class LookupTable {
+        +put(key, value) LookupTable
+        +get(key) double
+    }
+
+    class BallBlobPipeline {
+        <<abstract, Hive Vision>>
+        +bestOf(BallColor) BallBlob
+    }
+    class BallDetectorPipeline {
+        <<Hive Vision>>
+    }
+    class AprilTagProcessor {
+        <<FTC SDK>>
+    }
+    class Constants {
+        <<Pedro, tabled>>
+        +create(HardwareMap)$ Follower
+    }
+
+    LinearOpMode <|-- BiobuzzTeleOp
+    LinearOpMode <|-- MecanumDrive
+    BiobuzzTeleOp <|-- TeleOpRed
+    BiobuzzTeleOp <|-- TeleOpBlue
+    BiobuzzTeleOp --> RobotHardware : creates and drives
+    MecanumDrive --> RobotHardware : drive test
+
+    Subsystem <|.. Odometry
+    Subsystem <|.. Gyro
+    Subsystem <|.. HiveState
+    Subsystem <|.. HiveCamera
+    Subsystem <|.. PollenCamera
+    Subsystem <|.. Turret
+    Subsystem <|.. ShooterSubsystem
+    Subsystem <|.. Intake
+    Subsystem <|.. Transfer
+    Subsystem <|.. FlowerRamp
+
+    RobotHardware *-- Odometry
+    RobotHardware *-- Gyro
+    RobotHardware *-- HiveState
+    RobotHardware *-- HiveCamera
+    RobotHardware *-- PollenCamera
+    RobotHardware *-- Turret
+    RobotHardware *-- ShooterSubsystem
+    RobotHardware *-- Intake
+    RobotHardware *-- Transfer
+    RobotHardware *-- FlowerRamp
+    RobotHardware ..> ShotSolver : aimAtHive()
+
+    ShotSolver ..> Shot : returns
+    ShotSolver --> LookupTable : RPM and hood tables
+    HiveCamera --> HiveState : setFromCamera()
+    HiveCamera --> AprilTagProcessor
+    PollenCamera --> BallDetectorPipeline
+    BallBlobPipeline <|-- BallDetectorPipeline
+```
+
+`*--` means RobotHardware owns that subsystem, `<|..` means "implements Subsystem", `<|--` means "extends",
+and `..>` means "uses". `$` marks a static method. `LimelightSubsystem` still exists but is deprecated and unused,
+so it's left out.
+
+## What happens each TeleOp loop
+
+```mermaid
+flowchart LR
+    A[robot.update] --> B[Odometry reads Pinpoint pose]
+    B --> C[HiveCamera checks AprilTag clusters]
+    C --> D[HiveState: which cell is up]
+    D --> E[Gamepad input]
+    E --> F{Aiming on?}
+    F -- yes --> G[aimAtHive: ShotSolver.solve]
+    G --> H[Turret angle, flywheel RPM, hood angle]
+    F -- no --> I[Turret to 0, flywheel off]
+    H --> J{Trigger held and readyToShoot?}
+    J -- yes --> K[Transfer feeds, intake runs]
+    J -- no --> L[Transfer holds pollen]
+    K --> M[Telemetry from every subsystem]
+    L --> M
+    I --> M
+```
+
+## Driver Station configuration
+
+| Type | Names |
+|---|---|
+| Motors | `frontLeft`, `frontRight`, `backLeft`, `backRight`, `shooter`, `turret`, `intake`, `transfer` |
+| Servos | `hood`, `rampLeft`, `rampRight` |
+| I2C | `pinpoint` (goBILDA Pinpoint), `imu` (Control Hub IMU) |
+| Webcams | `hiveCam` (Thriftiest Cam on the turret), `pollenCam` (Logitech C270 at the front) |
+
+## Controls (TeleOp Red / TeleOp Blue)
+
+| Gamepad 1 | Gamepad 2 |
+|---|---|
+| Left stick: drive, right stick X: turn | A: aiming on/off · B: re-zero turret (point it forward first) · Dpad up: hive tipped · X: flower ramp up/down · Right bumper: intake · Right trigger: shoot when ready · Left bumper: clear jam |
+
+Vision code in `hivevision/` is from [Hive Vision](https://github.com/hivevisionftc/Hive-Vision) (MIT license,
+see `hivevision/LICENSE-HiveVision.txt`).
+
+---
+
 ## NOTICE
 
 This repository contains the public FTC SDK for the BIOBUZZ (2026-2027) competition season.
