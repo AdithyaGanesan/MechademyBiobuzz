@@ -12,7 +12,9 @@ import org.firstinspires.ftc.teamcode.mechanisms.ShotSolver;
  *
  * gamepad1: left stick = drive, right stick X = turn
  * gamepad2: A = aiming on/off, B = re-zero turret (point it forward first),
- *           dpad up = hive tipped (flip target cell), X = flower ramp up/down
+ *           dpad up = hive tipped (flip target cell), X = flower ramp up/down,
+ *           right bumper (hold) = intake, left bumper (hold) = spit out / clear jam,
+ *           right trigger (hold) = shoot; feeds only while aiming and ready
  * @author: AdithyaGanesan
  */
 public abstract class BiobuzzTeleOp extends LinearOpMode {
@@ -50,7 +52,20 @@ public abstract class BiobuzzTeleOp extends LinearOpMode {
                 robot.turret.setTargetAngle(0);
                 robot.shooter.stop();
             }
-            //TODO: Feed balls with the transfer once it exists, only while robot.readyToShoot().
+            // Intake / shoot. Clearing a jam wins over shooting, shooting wins over plain intake.
+            boolean shootHeld = gamepad2.right_trigger > 0.5;
+            if (gamepad2.left_bumper) {
+                robot.intake.out();
+                robot.transfer.reverse();
+            } else if (shootHeld && aiming && robot.readyToShoot()) {
+                // Intake runs too: it drives the lower conveyor that brings the next pollen up.
+                robot.intake.in();
+                robot.transfer.feed();
+            } else {
+                // Not ready yet (or not shooting): hold pollen below the flywheel.
+                robot.transfer.off();
+                if (gamepad2.right_bumper) robot.intake.in(); else robot.intake.off();
+            }
 
             telemetry.addData("Aiming", aiming);
             telemetry.addData("Ready to shoot", robot.readyToShoot());

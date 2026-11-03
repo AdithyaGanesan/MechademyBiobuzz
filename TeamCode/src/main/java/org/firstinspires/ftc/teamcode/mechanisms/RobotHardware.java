@@ -28,6 +28,8 @@ public class RobotHardware {
     public Turret turret;
     public HiveState hiveState;
     public FlowerRamp flowerRamp;
+    public Intake intake;
+    public Transfer transfer;
     public HiveCamera hiveCamera;
     public PollenCamera pollenCamera;
 
@@ -47,6 +49,8 @@ public class RobotHardware {
         turret = new Turret(hwMap);
         hiveState = new HiveState(alliance);
         flowerRamp = new FlowerRamp(hwMap);
+        intake = new Intake(hwMap);
+        transfer = new Transfer(hwMap);
 
         // --- Cameras: split the Driver Station camera preview so both show at once ---
         int[] views = VisionPortal.makeMultiPortalView(2, VisionPortal.MultiPortalLayout.HORIZONTAL);
@@ -54,7 +58,8 @@ public class RobotHardware {
         pollenCamera = new PollenCamera(hwMap, views[1]);
 
         // Hive camera before hiveState and turret so a new answer is used the same loop.
-        subsystems = Arrays.asList(odometry, imu, hiveCamera, hiveState, turret, shooter, flowerRamp, pollenCamera);
+        subsystems = Arrays.asList(odometry, imu, hiveCamera, hiveState, turret, shooter, flowerRamp,
+                intake, transfer, pollenCamera);
 
         // --- Drivetrain ---
         frontLeft  = hwMap.get(DcMotorEx.class, "frontLeft");
