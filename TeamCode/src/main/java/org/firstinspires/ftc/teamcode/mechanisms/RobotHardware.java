@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +28,8 @@ public class RobotHardware {
     public Turret turret;
     public HiveState hiveState;
     public FlowerRamp flowerRamp;
+    public HiveCamera hiveCamera;
+    public PollenCamera pollenCamera;
 
     // Every subsystem, in the order update() runs them. Odometry first so later steps see a fresh pose.
     private List<Subsystem> subsystems;
@@ -44,7 +47,14 @@ public class RobotHardware {
         turret = new Turret(hwMap);
         hiveState = new HiveState(alliance);
         flowerRamp = new FlowerRamp(hwMap);
-        subsystems = Arrays.asList(odometry, imu, hiveState, turret, shooter, flowerRamp);
+
+        // --- Cameras: split the Driver Station camera preview so both show at once ---
+        int[] views = VisionPortal.makeMultiPortalView(2, VisionPortal.MultiPortalLayout.HORIZONTAL);
+        hiveCamera = new HiveCamera(hwMap, hiveState, alliance, views[0]);
+        pollenCamera = new PollenCamera(hwMap, views[1]);
+
+        // Hive camera before hiveState and turret so a new answer is used the same loop.
+        subsystems = Arrays.asList(odometry, imu, hiveCamera, hiveState, turret, shooter, flowerRamp, pollenCamera);
 
         // --- Drivetrain ---
         frontLeft  = hwMap.get(DcMotorEx.class, "frontLeft");
